@@ -1,17 +1,37 @@
 require('dotenv').config();
-const express = require('express');
 
+const express = require('express');
 const app = express();
+const PORT = process.env.PORT || 5000;
+const authRoutes = require('./routes/authRoutes');
+const { authenticate, authorize } = require('./middleware/authMiddleware');
+const productRoutes = require('./routes/productRoutes');
+
 app.use(express.json());
+app.use('/products', productRoutes);
 
 app.get('/', (req, res) => {
   res.send('Smart Inventory API Running');
 });
-
-const PORT = process.env.PORT || 5000;
+app.get('/protected', authenticate, (req, res) => {
+  res.json({
+    message: 'You accessed a protected route',
+    user: req.user
+  });
+});
+app.get(
+  '/admin-only',
+  authenticate,
+  authorize(['admin']),
+  (req, res) => {
+    res.json({ message: 'Admin access granted' });
+  }
+);
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
-const authRoutes = require('./routes/authRoutes');
+
 app.use('/auth', authRoutes);
+
+
