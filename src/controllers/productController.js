@@ -17,8 +17,42 @@ exports.createProduct = async (req, res) => {
 
 exports.getProducts = async (req, res) => {
   try {
-    const products = await pool.query('SELECT * FROM products');
-    res.json(products.rows);
+    const {
+      page = 1,
+      limit = 10,
+      search = '',
+      minQty = 0,
+      sort = 'id'
+    } = req.query;
+
+    const offset = (page - 1) * limit;
+
+    const validSortFields = ['id', 'price', 'quantity', 'name'];
+    const sortField = validSortFields.includes(sort) ? sort : 'id';
+
+    const query = `
+      SELECT * FROM products
+      WHERE name ILIKE $1
+      AND quantity >= $2
+      ORDER BY ${sortField}
+      LIMIT $3 OFFSET $4
+    `;
+
+    const values = [
+      `%${search}%`,
+      minQty,
+      limit,
+      offset
+    ];
+
+    const result = await pool.query(query, values);
+
+    res.json({
+      page: Number(page),
+      limit: Number(limit),
+      results: result.rows
+    });
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

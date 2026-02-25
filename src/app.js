@@ -6,9 +6,13 @@ const PORT = process.env.PORT || 5000;
 const authRoutes = require('./routes/authRoutes');
 const { authenticate, authorize } = require('./middleware/authMiddleware');
 const productRoutes = require('./routes/productRoutes');
+const inventoryRoutes = require('./routes/inventoryRoutes');
 
 app.use(express.json());
+app.use('/auth', authRoutes);
+app.use('/inventory', inventoryRoutes);
 app.use('/products', productRoutes);
+
 
 app.get('/', (req, res) => {
   res.send('Smart Inventory API Running');
@@ -31,7 +35,3 @@ app.get(
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
-
-app.use('/auth', authRoutes);
-
-
